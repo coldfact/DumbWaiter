@@ -654,13 +654,13 @@ def _warn_unknown_config_keys(cfg: dict) -> None:
     """Warn about unrecognized config keys (catches typos like 'intervall_seconds')."""
     for key in cfg:
         if key not in _KNOWN_TOP_KEYS:
-            print(f"[WARN] Unknown config key '{key}' — will be ignored.")
+            print(f"[WARN] Unknown config key '{key}' will be ignored.")
     for key in cfg.get("uia", {}):
         if key not in _KNOWN_UIA_KEYS:
-            print(f"[WARN] Unknown config key 'uia.{key}' — will be ignored.")
+            print(f"[WARN] Unknown config key 'uia.{key}' will be ignored.")
     for key in cfg.get("scope", {}):
         if key not in _KNOWN_SCOPE_KEYS:
-            print(f"[WARN] Unknown config key 'scope.{key}' — will be ignored.")
+            print(f"[WARN] Unknown config key 'scope.{key}' will be ignored.")
 
 
 def main() -> None:
@@ -732,7 +732,7 @@ def main() -> None:
             f"({scope_region.left},{scope_region.top},{scope_region.width},{scope_region.height})"
         )
     print(
-        f"[START] Dumb Waiter v{__version__} — Looking for "
+        f"[START] Dumb Waiter v{__version__} - Looking for "
         f"{format_targets_for_log(targets)} "
         f"in windows matching '{window_title_regex}' "
         f"within {scope_text}; polling every {interval_s}s."

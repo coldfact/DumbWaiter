@@ -43,7 +43,8 @@ if ($ExecutablePath) {
     $Args += " --python-path `"$WorkerPythonPath`""
   }
   $Action = New-ScheduledTaskAction -Execute $ExecutablePath -Argument $Args -WorkingDirectory $RunDir
-} else {
+}
+else {
   $Pythonw = (Get-Command pythonw.exe -ErrorAction SilentlyContinue).Source
   if (-not $Pythonw) {
     Write-Host "pythonw.exe not found on PATH. Install Python or add it to PATH."
@@ -73,11 +74,12 @@ $Trigger = New-ScheduledTaskTrigger -AtLogOn
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 
 try {
-  $Description = "Dumb Waiter tray app — auto-click UI prompts in matching windows."
+  $Description = "Dumb Waiter tray app - auto-click UI prompts in matching windows."
   Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Description $Description -Force | Out-Null
   if ($ExecutablePath) {
     Write-Host "Installed Scheduled Task '$TaskName' to run Dumb Waiter tray EXE at logon."
-  } else {
+  }
+  else {
     Write-Host "Installed Scheduled Task '$TaskName' to run Dumb Waiter tray at logon."
   }
 
@@ -85,11 +87,13 @@ try {
     try {
       Start-ScheduledTask -TaskName $TaskName
       Write-Host "Started Scheduled Task '$TaskName' now."
-    } catch {
+    }
+    catch {
       Write-Host "Installed task, but could not start it now: $($_.Exception.Message)"
     }
   }
-} catch {
+}
+catch {
   Write-Host "Failed to register scheduled task: $($_.Exception.Message)"
   exit 1
 }
