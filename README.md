@@ -14,6 +14,7 @@ Tired of being prompted even though you have allowed your AI agent to run certai
 ## Tray App
 
 Turn off the Dumb Waiter while you are interactively coding, and turn it on if you want things to run autonomously over night.
+
 ![Tray on and off toggle](docs/images/tray_toggle.png)
 
 > [!WARNING]
