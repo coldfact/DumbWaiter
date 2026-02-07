@@ -14,6 +14,7 @@ if (-not (Test-Path $ConfigPath)) {
   Write-Host "Config not found: $ConfigPath"
   exit 1
 }
+$ConfigPath = (Resolve-Path $ConfigPath).Path
 
 if ($ExecutablePath) {
   if (-not (Test-Path $ExecutablePath)) {
@@ -72,7 +73,8 @@ $Trigger = New-ScheduledTaskTrigger -AtLogOn
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 
 try {
-  Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Force | Out-Null
+  $Description = "Dumb Waiter tray app — auto-click UI prompts in matching windows."
+  Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Description $Description -Force | Out-Null
   if ($ExecutablePath) {
     Write-Host "Installed Scheduled Task '$TaskName' to run Dumb Waiter tray EXE at logon."
   } else {
