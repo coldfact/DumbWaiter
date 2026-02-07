@@ -1,6 +1,7 @@
 targets:
   - "accept all"
   - "run"
+  - "retry"
 
 interval_seconds: 2.0
 verbose: false
@@ -20,6 +21,7 @@ uia:
   target_regexes:
     - "^accept\\s+all$"
     - "^run(?:\\s*alt.*)?$"
+    - "^retry(?:\\s*alt.*)?$"
 
 # Optional screen scope (no pixel math needed).
 # Useful to avoid left-side menu/toolbars that contain "Run" labels.
