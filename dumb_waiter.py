@@ -10,6 +10,8 @@ from typing import Optional, List, Tuple, Dict, Any
 
 import yaml
 
+__version__ = "0.0.1"
+
 # UI Automation
 from pywinauto import Desktop
 
@@ -22,7 +24,7 @@ def set_dpi_awareness():
     Avoid wrong coordinates on Windows with scaling (125%/150%).
     """
     try:
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)  # PER_MONITOR_AWARE
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)  # PROCESS_PER_MONITOR_DPI_AWARE
     except Exception:
         try:
             ctypes.windll.user32.SetProcessDPIAware()
@@ -60,7 +62,9 @@ class Region:
             return None
         return Region(left=left, top=top, width=(right - left), height=(bottom - top))
 
-    def intersection_rect(self, rect: Tuple[int, int, int, int]) -> Optional[Tuple[int, int, int, int]]:
+    def intersection_rect(
+        self, rect: Tuple[int, int, int, int]
+    ) -> Optional[Tuple[int, int, int, int]]:
         left = max(self.left, rect[0])
         top = max(self.top, rect[1])
         right = min(self.right, rect[2])
@@ -88,7 +92,9 @@ def normalize_control_label(s: str) -> str:
       "Accept all" -> "accept all"
     """
     name = normalize_text(s)
-    name = re.sub(r"\s*\((?:alt|ctrl|shift|cmd|win)\+[^)]*\)\s*$", "", name, flags=re.IGNORECASE)
+    name = re.sub(
+        r"\s*\((?:alt|ctrl|shift|cmd|win)\+[^)]*\)\s*$", "", name, flags=re.IGNORECASE
+    )
     name = re.sub(r"\s+(?:alt|ctrl|shift|cmd|win)\+.*$", "", name, flags=re.IGNORECASE)
     name = re.sub(r"(?:alt|ctrl|shift|cmd|win)\+.*$", "", name, flags=re.IGNORECASE)
     name = re.sub(r"\s+", " ", name).strip()
@@ -119,7 +125,9 @@ def compile_target_regexes(
         try:
             compiled.append(re.compile(pattern, re.IGNORECASE))
         except re.error as exc:
-            raise SystemExit(f"Invalid uia.target_regexes[{idx}] regex '{pattern}': {exc}")
+            raise SystemExit(
+                f"Invalid uia.target_regexes[{idx}] regex '{pattern}': {exc}"
+            )
     return compiled
 
 
@@ -180,10 +188,10 @@ def get_virtual_screen_region() -> Region:
     """
     try:
         user32 = ctypes.windll.user32
-        left = int(user32.GetSystemMetrics(76))   # SM_XVIRTUALSCREEN
-        top = int(user32.GetSystemMetrics(77))    # SM_YVIRTUALSCREEN
+        left = int(user32.GetSystemMetrics(76))  # SM_XVIRTUALSCREEN
+        top = int(user32.GetSystemMetrics(77))  # SM_YVIRTUALSCREEN
         width = int(user32.GetSystemMetrics(78))  # SM_CXVIRTUALSCREEN
-        height = int(user32.GetSystemMetrics(79)) # SM_CYVIRTUALSCREEN
+        height = int(user32.GetSystemMetrics(79))  # SM_CYVIRTUALSCREEN
         if width > 0 and height > 0:
             return Region(left=left, top=top, width=width, height=height)
     except Exception:
@@ -211,7 +219,9 @@ def region_from_fractions(
     bottom = top + int(base.height * height_fraction)
 
     clipped = base.intersect(
-        Region(left=left, top=top, width=max(0, right - left), height=max(0, bottom - top))
+        Region(
+            left=left, top=top, width=max(0, right - left), height=max(0, bottom - top)
+        )
     )
     return clipped
 
@@ -221,7 +231,9 @@ def resolve_scope_region_for_base(
     scope_cfg: Dict[str, Any],
     preset_override: Optional[str] = None,
 ) -> Region:
-    preset = normalize_text(str(preset_override or scope_cfg.get("preset", "right_half")))
+    preset = normalize_text(
+        str(preset_override or scope_cfg.get("preset", "right_half"))
+    )
     region: Optional[Region] = None
 
     if preset in {"full", "full screen", "full_screen"}:
@@ -254,9 +266,17 @@ def resolve_scope_region_for_base(
         )
     else:
         valid = [
-            "full_screen", "left_half", "right_half", "top_half", "bottom_half",
-            "top_left_quarter", "top_right_quarter", "bottom_left_quarter", "bottom_right_quarter",
-            "center_box", "custom_fractions",
+            "full_screen",
+            "left_half",
+            "right_half",
+            "top_half",
+            "bottom_half",
+            "top_left_quarter",
+            "top_right_quarter",
+            "bottom_left_quarter",
+            "bottom_right_quarter",
+            "center_box",
+            "custom_fractions",
         ]
         raise SystemExit(f"Invalid scope.preset '{preset}'. Valid options: {valid}")
 
@@ -277,7 +297,9 @@ def resolve_scope_region_for_base(
     return region
 
 
-def resolve_scope_region(scope_cfg: Dict[str, Any], verbose: bool = False) -> Optional[Region]:
+def resolve_scope_region(
+    scope_cfg: Dict[str, Any], verbose: bool = False
+) -> Optional[Region]:
     """
     Optional global screen scope to avoid unrelated controls (e.g., top menu items).
     """
@@ -327,7 +349,9 @@ def ensure_window_ready(window: Any, verbose: bool = False) -> Optional[Region]:
     """
     if is_minimized_window(window):
         if verbose:
-            print(f"[UIA] Restoring window '{window.window_text()}' from minimized state")
+            print(
+                f"[UIA] Restoring window '{window.window_text()}' from minimized state"
+            )
         try:
             window.restore()
         except Exception:
@@ -346,10 +370,14 @@ def ensure_window_ready(window: Any, verbose: bool = False) -> Optional[Region]:
     if rect.width() <= 1 or rect.height() <= 1:
         return None
 
-    return Region(left=rect.left, top=rect.top, width=rect.width(), height=rect.height())
+    return Region(
+        left=rect.left, top=rect.top, width=rect.width(), height=rect.height()
+    )
 
 
-def get_matching_windows(window_title_regex: str, verbose: bool = False) -> List[Tuple[Any, Region]]:
+def get_matching_windows(
+    window_title_regex: str, verbose: bool = False
+) -> List[Tuple[Any, Region]]:
     """
     Find windows that match the title regex and return them with usable bounds.
     """
@@ -394,7 +422,9 @@ def apply_scope_to_windows(
         preset = normalize_text(str(cfg.get("preset", "right_half")))
         scoped: List[Tuple[Any, Region]] = []
         for window, window_region in windows_with_regions:
-            local_scope = resolve_scope_region_for_base(window_region, cfg, preset_override=preset)
+            local_scope = resolve_scope_region_for_base(
+                window_region, cfg, preset_override=preset
+            )
             clipped = window_region.intersect(local_scope)
             if clipped is not None:
                 scoped.append((window, clipped))
@@ -426,7 +456,9 @@ def uia_click_targets(
     if not targets_n:
         return False
     target_patterns = compile_target_regexes(targets_n, target_regexes)
-    debug_terms = sorted({term for target in targets_n for term in target.split(" ") if term})
+    debug_terms = sorted(
+        {term for target in targets_n for term in target.split(" ") if term}
+    )
     seen_debug_candidates = set()
 
     # Common UIA control types seen across desktop/webview/Electron button-like widgets.
@@ -509,8 +541,8 @@ def uia_click_targets(
                     except Exception:
                         continue
 
-        # Final fallback: search any named element with exact target text and click its center.
-        # This catches Electron/webview controls that don't expose standard button control types.
+            # Final fallback: search any named element with exact target text and click its center.
+            # This catches Electron/webview controls that don't expose standard button control types.
             try:
                 all_controls = window.descendants()
             except Exception:
@@ -581,10 +613,10 @@ def uia_click_targets(
     return False
 
 
-def main():
+def main() -> None:
     set_dpi_awareness()
 
-    default_cfg = (Path(__file__).resolve().parent / "config.yaml")
+    default_cfg = Path(__file__).resolve().parent / "config.yaml"
     ap = argparse.ArgumentParser(
         description="Dumb Waiter: auto-click 'Accept all' or 'Run' in windows matching title regex (UIA only)."
     )
@@ -616,9 +648,13 @@ def main():
     install_interrupt_handlers(ignore_keyboard_interrupt, verbose=verbose)
 
     uia_enabled = bool(cfg.get("uia", {}).get("enabled", True))
-    window_title_regex = (cfg.get("uia", {}).get("window_title_regex", "") or "").strip()
+    window_title_regex = (
+        cfg.get("uia", {}).get("window_title_regex", "") or ""
+    ).strip()
     if not window_title_regex:
-        raise SystemExit("Config 'uia.window_title_regex' is required and must be non-empty.")
+        raise SystemExit(
+            "Config 'uia.window_title_regex' is required and must be non-empty."
+        )
     target_regexes = cfg.get("uia", {}).get("target_regexes", [])
     if target_regexes is not None and not isinstance(target_regexes, list):
         raise SystemExit("Config 'uia.target_regexes' must be a list when provided.")
@@ -645,7 +681,7 @@ def main():
             f"({scope_region.left},{scope_region.top},{scope_region.width},{scope_region.height})"
         )
     print(
-        "[START] Looking for "
+        f"[START] Dumb Waiter v{__version__} — Looking for "
         f"{format_targets_for_log(targets)} "
         f"in windows matching '{window_title_regex}' "
         f"within {scope_text}; polling every {interval_s}s."
@@ -679,12 +715,16 @@ def main():
         print(f"  debug_mode = {debug_mode}")
         print(f"  ignore_keyboard_interrupt = {ignore_keyboard_interrupt}")
         print(f"  continue_on_error = {continue_on_error}")
-        print(f"  uia.enabled = {uia_enabled}, window_title_regex = {window_title_regex}")
+        print(
+            f"  uia.enabled = {uia_enabled}, window_title_regex = {window_title_regex}"
+        )
 
     while True:
         try:
             clicked = False
-            windows_with_regions = get_matching_windows(window_title_regex, verbose=verbose)
+            windows_with_regions = get_matching_windows(
+                window_title_regex, verbose=verbose
+            )
             scoped_windows = apply_scope_to_windows(
                 windows_with_regions,
                 scope_region,
@@ -694,8 +734,15 @@ def main():
 
             if verbose and not windows_with_regions:
                 print(f"[UIA] No windows matched regex '{window_title_regex}'.")
-            if verbose and windows_with_regions and not scoped_windows and scope_enabled:
-                print("[SCOPE] Matching windows exist, but none intersect the configured scope.")
+            if (
+                verbose
+                and windows_with_regions
+                and not scoped_windows
+                and scope_enabled
+            ):
+                print(
+                    "[SCOPE] Matching windows exist, but none intersect the configured scope."
+                )
 
             if uia_enabled and scoped_windows:
                 clicked = uia_click_targets(
