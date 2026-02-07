@@ -1,0 +1,39 @@
+# Python cache/artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build artifacts
+build/
+dist/
+*.spec
+*.exe
+*.toc
+*.pkg
+*.pyz
+*.egg-info/
+pip-wheel-metadata/
+
+# Logs
+*.log
+
+# IDE/editor
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Dumb Waiter tray local outputs
+dumb_waiter_tray/worker.log
+dumb_waiter_tray/build/
+dumb_waiter_tray/dist/
+dumb_waiter_tray/*.spec

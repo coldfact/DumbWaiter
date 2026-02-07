@@ -1,0 +1,44 @@
+targets:
+  - "accept all"
+  - "run"
+
+interval_seconds: 2.0
+verbose: false
+debug_mode: false
+# Keep watcher alive if terminal sends Ctrl+C (common when Run is executed in same VS Code terminal).
+ignore_keyboard_interrupt: false
+# If false, unexpected loop errors will stop the script instead of self-recovering.
+continue_on_error: true
+
+uia:
+  enabled: true
+  # Required: only windows whose title matches this regex are scanned/clicked.
+  window_title_regex: "Antigravity"
+  # Optional per-target regex matching, aligned by order with `targets`.
+  # Use this when a button label includes shortcut hints like "Run Alt+↲".
+  # Set empty string to keep strict exact matching for that target.
+  target_regexes:
+    - "^accept\\s+all$"
+    - "^run(?:\\s*alt.*)?$"
+
+# Optional screen scope (no pixel math needed).
+# Useful to avoid left-side menu/toolbars that contain "Run" labels.
+scope:
+  enabled: true
+  # When true, preset is applied to each matched window (recommended for multi-monitor setups).
+  # This avoids global-screen splits missing buttons near monitor boundaries.
+  relative_to_window: true
+  preset: "right_half"
+  # Presets:
+  # - full_screen
+  # - left_half / right_half / top_half / bottom_half
+  # - top_left_quarter / top_right_quarter / bottom_left_quarter / bottom_right_quarter
+  # - center_box
+  # - custom_fractions
+  # custom_fractions example:
+  # left_fraction: 0.50
+  # top_fraction: 0.00
+  # width_fraction: 0.50
+  # height_fraction: 1.00
+  # Optional shrink of selected scope to avoid edge clicks (0-40):
+  inset_percent: 0
