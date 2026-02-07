@@ -33,7 +33,6 @@ pip-wheel-metadata/
 Thumbs.db
 
 # Dumb Waiter tray local outputs
-dumb_waiter_tray/worker.log
 dumb_waiter_tray/build/
 dumb_waiter_tray/dist/
 dumb_waiter_tray/*.spec
