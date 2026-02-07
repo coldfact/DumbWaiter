@@ -1,14 +1,16 @@
 # Dumb Waiter
 
-Tired of being prompted even though you have allowed your AI agent to run certain commands? 
+Tired of being prompted even though you have allowed your AI agent to run certain commands?
 `dumb_waiter.py` watches UI controls in windows matching a title regex (for example `Antigravity`) and clicks target buttons in priority order (typically `Accept all`, then `Run`).
 
 ## What It Clicks
 
 ### Run prompt example
+
 ![Run prompt example](docs/images/run-prompt.png)
 
 ### Accept all prompt example
+
 ![Accept all prompt example](docs/images/accept-all-prompt.png)
 
 ## Tray App
@@ -18,6 +20,7 @@ Turn off the Dumb Waiter while you are interactively coding, and turn it on if y
 ![Tray on and off toggle](docs/images/tray_toggle.png)
 
 > [!WARNING]
+>
 > - Dumb Waiter can approve and execute actions without human review.
 > - Use this only if you **understand exactly** what may run and have explicit sandbox/permission limits in place.
 > - **Check in (commit/push) your code** before leaving anything unattended.
@@ -35,7 +38,7 @@ Turn off the Dumb Waiter while you are interactively coding, and turn it on if y
 Install Python deps for the core script:
 
 ```powershell
-python -m pip install pyyaml pyautogui pywinauto
+python -m pip install -r requirements.txt
 ```
 
 If you want tray mode:
@@ -49,17 +52,17 @@ python -m pip install -r .\dumb_waiter_tray\requirements.txt
 Most users only need to edit a few fields:
 
 - `uia.window_title_regex`: required. Limits clicks to matching window titles.
-  - Example: `"Antigravity"`
-  - Example: `"VS Code|Visual Studio Code"`
+    - Example: `"Antigravity"`
+    - Example: `"VS Code|Visual Studio Code"`
 - `interval_seconds`: polling frequency.
-  - Lower value = faster reaction, more CPU wake-ups.
-  - Higher value = fewer checks, slower reaction.
+    - Lower value = faster reaction, more CPU wake-ups.
+    - Higher value = fewer checks, slower reaction.
 - `targets`: click priority order.
-  - Default is `accept all` first, then `run`.
+    - Default is `accept all` first, then `run`.
 - `uia.target_regexes`: optional regex per target (same order as `targets`).
-  - Useful for labels like `RunAlt+⏎`.
+    - Useful for labels like `RunAlt+⏎`.
 - `scope.enabled` + `scope.preset`: optional area filter to avoid false positives.
-  - Common preset values: `right_half`, `bottom_right_quarter`, `full_screen`.
+    - Common preset values: `right_half`, `bottom_right_quarter`, `full_screen`.
 - `scope.inset_percent`: shrinks scope inward to avoid edge clicks.
 - `debug_mode`: set `true` to print candidate UI labels and regex checks.
 - `verbose`: set `true` for periodic idle/diagnostic logs.
@@ -70,7 +73,7 @@ Common example (watch VS Code windows with faster polling):
 ```yaml
 interval_seconds: 1.0
 uia:
-  window_title_regex: "VS Code|Visual Studio Code"
+    window_title_regex: "VS Code|Visual Studio Code"
 ```
 
 ## Run options
@@ -82,10 +85,12 @@ python .\dumb_waiter.py --config .\config.yaml
 ```
 
 Use this when:
+
 - You are actively testing config/regex/scope.
 - You want simple, direct behavior.
 
 Tradeoff:
+
 - If another tool force-kills all `python` processes, this instance dies too.
 
 ### 2) Resilient terminal run (`run_resilient_dumb_waiter.ps1`)
@@ -95,6 +100,7 @@ powershell -ExecutionPolicy Bypass -File .\run_resilient_dumb_waiter.ps1
 ```
 
 Use this when:
+
 - Another process may kill `python.exe` (for example hot-reload scripts).
 - You want the watcher to auto-restart if terminated.
 
@@ -129,6 +135,7 @@ python .\dumb_waiter_tray\tray_app.py --config .\config.yaml --debug --worker-de
 ```
 
 Debug logs:
+
 - `dumb_waiter_tray/tray.log` (tray lifecycle, launch command, worker exits)
 - `dumb_waiter_tray/worker.log` (`dumb_waiter.py` output, including UIA debug candidates)
 - `dumb_waiter_tray/dist/startup_error.log` (fatal tray EXE startup exceptions)
@@ -138,6 +145,7 @@ to avoid Unicode logging failures on labels like `RunAlt+⏎`.
 If you run a previously built tray EXE, rebuild it after pulling tray code changes.
 
 Use this when:
+
 - You want quick `Turn on` / `Turn off` control from system tray.
 - You want visual state (green idle, red active).
 - You want optional startup at logon.
@@ -163,11 +171,13 @@ powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\install_star
 ⚠️ Warning: if task registration fails with `Access is denied`, run PowerShell as Administrator and retry.
 
 After starting, look for the Dumb Waiter tray icon near the clock:
+
 - Green icon = tray app idle (watcher off)
 - Red icon = watcher active (clicker on)
 - If not visible, open tray overflow (`^`) and pin it
 
 You may need to run:
+
 ```powershell
 Start-ScheduledTask -TaskName DumbWaiterTray
 ```
@@ -189,6 +199,7 @@ powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\build_tray_exe.ps1 -
 The build script now runs preflight automatically before build/install.
 
 Why this helps:
+
 - A kill command targeting `python.exe` does not match `dumb_waiter_tray.exe`.
 
 Build + install startup task in one command (optional):
@@ -211,6 +222,12 @@ powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\build_tray_exe.ps1 -
 ```
 
 ⚠️ Warning: the `-InstallStartupTask` step may require an elevated (Administrator) PowerShell session on some machines.
+
+## Remove startup task
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\remove_startup_task.ps1
+```
 
 ## Operational notes
 

@@ -3,7 +3,7 @@
 This folder adds a Windows tray controller for `dumb_waiter.py`.
 
 > [!WARNING]
-> ⚠️ Warning
+>
 > - The tray can run Dumb Waiter unattended, so approvals can happen without active human review.
 > - Only use this if you understand what actions may be approved and have constrained environment/process permissions.
 > - Check in (commit/push) your code before leaving unattended automation running.
@@ -11,11 +11,12 @@ This folder adds a Windows tray controller for `dumb_waiter.py`.
 > - This project is provided as-is, without warranty; you are responsible for any consequences on your system, code, or data.
 
 `tray_app.py` features:
+
 - `Turn on` (start clicker)
 - `Turn off` (stop clicker)
 - icon status:
-  - Green = idle/waiting
-  - Red = active
+    - Green = idle/waiting
+    - Red = active
 
 ## Install dependencies
 
@@ -42,9 +43,10 @@ python .\dumb_waiter_tray\tray_app.py --config .\config.yaml --debug --worker-de
 ```
 
 Logs:
+
 - `dumb_waiter_tray/tray.log` (tray app lifecycle, worker launch/exit details)
 - `dumb_waiter_tray/worker.log` (`dumb_waiter.py` output and UIA debug lines)
-- `startup_error.log` (fatal tray startup exceptions; for EXE runs this appears next to `dumb_waiter_tray.exe`)
+- `dumb_waiter_tray/dist/startup_error.log` (fatal tray startup exceptions; appears next to the built `dumb_waiter_tray.exe` in `dist/`)
 
 Tray mode forces UTF-8 worker I/O (`PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`) so
 non-ASCII UI labels (for example `RunAlt+⏎`) do not break worker logging.
@@ -63,7 +65,7 @@ Tray mode uses the same `config.yaml` as direct/script mode.
 Most common changes:
 
 - `uia.window_title_regex`: change from `"Antigravity"` to your app/window title regex.
-  - Example: `"VS Code|Visual Studio Code"`
+    - Example: `"VS Code|Visual Studio Code"`
 - `interval_seconds`: polling frequency (`1.0` is faster than `2.0`).
 - `scope.preset`: reduce false positives (`right_half` or `bottom_right_quarter`).
 - `debug_mode`: set `true` temporarily if a button is not being detected.
@@ -73,10 +75,10 @@ Example:
 ```yaml
 interval_seconds: 1.0
 uia:
-  window_title_regex: "VS Code|Visual Studio Code"
+    window_title_regex: "VS Code|Visual Studio Code"
 scope:
-  enabled: true
-  preset: "bottom_right_quarter"
+    enabled: true
+    preset: "bottom_right_quarter"
 ```
 
 ## Auto-start tray at logon
@@ -100,6 +102,7 @@ powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\install_star
 ⚠️ Warning: if this fails with `Access is denied`, open PowerShell as Administrator and run the command again.
 
 After it starts, look for the Dumb Waiter tray icon near the clock:
+
 - Green icon = idle (watcher off)
 - Red icon = active (watcher on)
 - If you do not see it, click tray overflow (`^`) and pin it
