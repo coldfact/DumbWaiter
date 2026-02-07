@@ -11,12 +11,16 @@ Tired of being prompted even though you have allowed your AI agent to run certai
 ### Accept all prompt example
 ![Accept all prompt example](docs/images/accept-all-prompt.png)
 
+## Tray App
+
+Turn off the Dumb Waiter while you are interactively coding, and turn it on if you want things to run autonomously over night.
+![Tray on and off toggle](docs/images/tray_toggle.png)
+
 > [!WARNING]
-> ⚠️ Warning
 > - Dumb Waiter can approve and execute actions without human review.
-> - Use this only if you understand exactly what may run and have explicit sandbox/permission limits in place.
-> - Check in (commit/push) your code before leaving anything unattended.
-> - If you are not confident about security or blast radius, do not run this unattended.
+> - Use this only if you **understand exactly** what may run and have explicit sandbox/permission limits in place.
+> - **Check in (commit/push) your code** before leaving anything unattended.
+> - If you are not confident about security or blast radius, **do not run this unattended**.
 > - This project is provided as-is, without warranty; you are responsible for any impact on code, systems, or data.
 
 ## What this project includes
