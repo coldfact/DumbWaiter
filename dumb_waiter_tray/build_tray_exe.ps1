@@ -40,7 +40,8 @@ function Test-IsAdministrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [Security.Principal.WindowsPrincipal]::new($identity)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-  } catch {
+  }
+  catch {
     return $false
   }
 }
@@ -77,28 +78,32 @@ Write-Host "[preflight] Running environment checks..."
 
 if ($PythonPathResolved) {
   Write-Ok "Python executable found: $PythonPathResolved"
-} else {
+}
+else {
   $preflightErrors.Add("Python executable not found. Pass -PythonPath explicitly.")
   Write-Fail "Python executable not found. Pass -PythonPath explicitly."
 }
 
 if ($TrayScriptResolved) {
   Write-Ok "Tray script found: $TrayScriptResolved"
-} else {
+}
+else {
   $preflightErrors.Add("Tray script missing: $TrayScript")
   Write-Fail "Tray script missing: $TrayScript"
 }
 
 if ($RequirementsResolved) {
   Write-Ok "Requirements file found: $RequirementsResolved"
-} else {
+}
+else {
   $preflightErrors.Add("Requirements file missing: $Requirements")
   Write-Fail "Requirements file missing: $Requirements"
 }
 
 if ($ConfigPathResolved) {
   Write-Ok "Config file found: $ConfigPathResolved"
-} else {
+}
+else {
   $preflightErrors.Add("Config file not found: $ConfigPath")
   Write-Fail "Config file not found: $ConfigPath"
 }
@@ -106,7 +111,8 @@ if ($ConfigPathResolved) {
 if ($IconPath) {
   if ($IconPathResolved) {
     Write-Ok "Icon file found: $IconPathResolved"
-  } else {
+  }
+  else {
     $preflightErrors.Add("Icon file not found: $IconPath")
     Write-Fail "Icon file not found: $IconPath"
   }
@@ -115,7 +121,8 @@ if ($IconPath) {
 if ($WorkerPythonPath) {
   if ($WorkerPythonPathResolved) {
     Write-Ok "Worker Python found: $WorkerPythonPathResolved"
-  } else {
+  }
+  else {
     $preflightErrors.Add("Worker Python not found: $WorkerPythonPath")
     Write-Fail "Worker Python not found: $WorkerPythonPath"
   }
@@ -125,7 +132,8 @@ if ($PythonPathResolved) {
   & $PythonPathResolved --version 2>$null
   if ($LASTEXITCODE -eq 0) {
     Write-Ok "Python runtime responds to --version."
-  } else {
+  }
+  else {
     $preflightErrors.Add("Python runtime check failed for: $PythonPathResolved")
     Write-Fail "Python runtime check failed for: $PythonPathResolved"
   }
@@ -134,15 +142,18 @@ if ($PythonPathResolved) {
     & $PythonPathResolved -m PyInstaller --version 1>$null 2>$null
     if ($LASTEXITCODE -eq 0) {
       Write-Ok "PyInstaller is available (required when -SkipPipInstall is used)."
-    } else {
+    }
+    else {
       $preflightErrors.Add("PyInstaller is not available but -SkipPipInstall was specified.")
       Write-Fail "PyInstaller is not available but -SkipPipInstall was specified."
     }
-  } else {
+  }
+  else {
     & $PythonPathResolved -m pip --version 1>$null 2>$null
     if ($LASTEXITCODE -eq 0) {
       Write-Ok "pip is available."
-    } else {
+    }
+    else {
       $preflightErrors.Add("pip is not available for the selected Python.")
       Write-Fail "pip is not available for the selected Python."
     }
@@ -156,7 +167,8 @@ if (-not $WorkerPythonPathResolved) {
   }
   if ($runtimePython) {
     Write-Ok "Runtime worker Python candidate found on PATH: $($runtimePython.Source)"
-  } else {
+  }
+  else {
     $preflightWarnings.Add("No python/pythonw found on PATH for EXE runtime worker launch. Use -WorkerPythonPath when installing task.")
     Write-Warn "No python/pythonw found on PATH for EXE runtime worker launch. Use -WorkerPythonPath when installing task."
   }
@@ -165,7 +177,8 @@ if (-not $WorkerPythonPathResolved) {
 if ($InstallStartupTask) {
   if ($InstallTaskScriptResolved) {
     Write-Ok "Startup task installer script found: $InstallTaskScriptResolved"
-  } else {
+  }
+  else {
     $preflightErrors.Add("Startup task script missing: $InstallTaskScript")
     Write-Fail "Startup task script missing: $InstallTaskScript"
   }
@@ -173,7 +186,8 @@ if ($InstallStartupTask) {
   $registerCmd = Get-Command Register-ScheduledTask -ErrorAction SilentlyContinue
   if ($registerCmd) {
     Write-Ok "ScheduledTasks cmdlets available."
-  } else {
+  }
+  else {
     $preflightErrors.Add("ScheduledTasks cmdlets not available on this machine/session.")
     Write-Fail "ScheduledTasks cmdlets not available on this machine/session."
   }
@@ -181,7 +195,8 @@ if ($InstallStartupTask) {
   if (-not (Test-IsAdministrator)) {
     $preflightWarnings.Add("Not running as Administrator. Task registration may fail with 'Access is denied'.")
     Write-Warn "Not running as Administrator. Task registration may fail with 'Access is denied'."
-  } else {
+  }
+  else {
     Write-Ok "Running with Administrator privileges."
   }
 }
@@ -235,6 +250,7 @@ $PyArgs = @(
   "--clean",
   "--onefile",
   "--windowed",
+  "--noupx",
   "--name", $Name,
   "--distpath", $OutputDir,
   "--workpath", $BuildDir,
@@ -266,13 +282,14 @@ if ($InstallStartupTask) {
   }
   if ($StartAfterInstall) {
     Write-Host "[build] Installing startup task '$TaskName' and starting it now..."
-  } else {
+  }
+  else {
     Write-Host "[build] Installing startup task '$TaskName'..."
   }
 
   $InstallArgs = @{
-    TaskName = $TaskName
-    ConfigPath = $ConfigPath
+    TaskName       = $TaskName
+    ConfigPath     = $ConfigPath
     ExecutablePath = $ExePath
   }
   if ($WorkerPythonPath) {
