@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import atexit
 import os
 import shutil
 import subprocess
@@ -16,8 +15,8 @@ import pystray
 from PIL import Image, ImageDraw
 
 
-COLOR_IDLE = (34, 197, 94, 255)  # Green: idle / waiting
-COLOR_ACTIVE = (220, 38, 38, 255)  # Red: active / clicker on
+COLOR_IDLE = (34, 197, 94, 255)      # Green: idle / waiting
+COLOR_ACTIVE = (220, 38, 38, 255)    # Red: active / clicker on
 COLOR_BG_RING = (15, 23, 42, 255)
 COLOR_FOREGROUND = (255, 255, 255, 255)
 
@@ -76,26 +75,17 @@ class DumbWaiterTrayApp:
         self._worker_log_handle = None
         self._last_exit_code: Optional[int] = None
 
-        self.icon = pystray.Icon(
-            "DumbWaiterTray", make_status_icon(False), "Dumb Waiter | IDLE"
-        )
+        self.icon = pystray.Icon("DumbWaiterTray", make_status_icon(False), "Dumb Waiter | IDLE")
         self.icon.menu = pystray.Menu(
-            pystray.MenuItem(
-                "Turn on", self.turn_on, enabled=lambda _item: not self.is_running()
-            ),
-            pystray.MenuItem(
-                "Turn off", self.turn_off, enabled=lambda _item: self.is_running()
-            ),
+            pystray.MenuItem("Turn on", self.turn_on, enabled=lambda _item: not self.is_running()),
+            pystray.MenuItem("Turn off", self.turn_off, enabled=lambda _item: self.is_running()),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Quit", self.quit_app),
         )
 
-        self._monitor_thread = threading.Thread(
-            target=self._monitor_worker, daemon=True
-        )
+        self._monitor_thread = threading.Thread(target=self._monitor_worker, daemon=True)
         self._monitor_thread.start()
         self._refresh_icon_and_title()
-        atexit.register(self._atexit_cleanup)
         self._log(
             f"initialized repo_root={self.repo_root} config={self.config_path} "
             f"requested_python={self.requested_python_path} worker_debug={self.worker_debug} "
@@ -153,10 +143,6 @@ class DumbWaiterTrayApp:
     def _log(self, message: str) -> None:
         if not self.debug:
             return
-        self._log_always(message)
-
-    def _log_always(self, message: str) -> None:
-        """Write to tray.log unconditionally (used for critical diagnostics)."""
         stamp = time.strftime("%Y-%m-%d %H:%M:%S")
         line = f"[{stamp}] {message}\n"
         try:
@@ -182,17 +168,8 @@ class DumbWaiterTrayApp:
             )
             self._worker_log_handle.flush()
 
-            python_executable = self._resolve_python_executable(
-                self.requested_python_path
-            )
-            # Always log chosen Python path (aids frozen-mode debugging even without --debug)
-            self._log_always(f"worker python resolved to: {python_executable}")
-            cmd = [
-                python_executable,
-                str(self.worker_script),
-                "--config",
-                str(self.config_path),
-            ]
+            python_executable = self._resolve_python_executable(self.requested_python_path)
+            cmd = [python_executable, str(self.worker_script), "--config", str(self.config_path)]
             env = os.environ.copy()
             # Keep worker stdout/stderr UTF-8 when launched via pythonw/tray.
             # Without this, UI labels like "RunAlt+⏎" can raise UnicodeEncodeError
@@ -203,11 +180,7 @@ class DumbWaiterTrayApp:
                 env["DUMB_WAITER_DEBUG_MODE"] = "1"
             if self.worker_verbose:
                 env["DUMB_WAITER_VERBOSE"] = "1"
-            creation_flags = (
-                subprocess.CREATE_NO_WINDOW
-                if hasattr(subprocess, "CREATE_NO_WINDOW")
-                else 0
-            )
+            creation_flags = subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0
             self._log(
                 f"starting worker python={python_executable} cmd={cmd} "
                 f"PYTHONUTF8={env.get('PYTHONUTF8')} "
@@ -309,15 +282,7 @@ class DumbWaiterTrayApp:
         self._log("quit clicked")
         self._stop_event.set()
         self._stop_worker()
-        self._monitor_thread.join(timeout=2)
         self.icon.stop()
-
-    def _atexit_cleanup(self) -> None:
-        """Safety net: stop worker if tray app exits unexpectedly."""
-        try:
-            self._stop_worker()
-        except Exception:
-            pass
 
     def run(self) -> None:
         self.icon.run()
@@ -349,9 +314,7 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     default_config = repo_root / "config.yaml"
 
-    parser = argparse.ArgumentParser(
-        description="Dumb Waiter tray controller (Turn on / Turn off)."
-    )
+    parser = argparse.ArgumentParser(description="Dumb Waiter tray controller (Turn on / Turn off).")
     parser.add_argument(
         "--config",
         default=str(default_config),
