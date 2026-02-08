@@ -1,5 +1,6 @@
 targets:
   - "accept all"
+  - "allow this conversation"
   - "run"
   - "retry"
 
@@ -20,6 +21,7 @@ uia:
   # Set empty string to keep strict exact matching for that target.
   target_regexes:
     - "^accept\\s+all$"
+    - "^allow this conversation(?:\\s*alt.*)?$"
     - "^run(?:\\s*alt.*)?$"
     - "^retry(?:\\s*alt.*)?$"
 
