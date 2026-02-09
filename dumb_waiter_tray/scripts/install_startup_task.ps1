@@ -5,8 +5,6 @@ Param(
   [string]$ExecutablePath = "",
   [string]$WorkerPythonPath = "",
   [switch]$Debug,
-  [switch]$WorkerDebug,
-  [switch]$WorkerVerbose,
   [switch]$StartNow
 )
 
@@ -27,12 +25,6 @@ if ($ExecutablePath) {
   $Args = "--config `"$ConfigPath`""
   if ($Debug) {
     $Args += " --debug"
-  }
-  if ($WorkerDebug) {
-    $Args += " --worker-debug"
-  }
-  if ($WorkerVerbose) {
-    $Args += " --worker-verbose"
   }
   if ($WorkerPythonPath) {
     if (-not (Test-Path $WorkerPythonPath)) {
@@ -60,12 +52,6 @@ else {
   $Args = "`"$ScriptPath`" --config `"$ConfigPath`""
   if ($Debug) {
     $Args += " --debug"
-  }
-  if ($WorkerDebug) {
-    $Args += " --worker-debug"
-  }
-  if ($WorkerVerbose) {
-    $Args += " --worker-verbose"
   }
   $Action = New-ScheduledTaskAction -Execute $Pythonw -Argument $Args -WorkingDirectory $WorkingDir
 }

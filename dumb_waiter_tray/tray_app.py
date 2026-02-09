@@ -56,16 +56,12 @@ class DumbWaiterTrayApp:
         config_path: Path,
         python_path: Optional[Path] = None,
         debug: bool = False,
-        worker_debug: bool = False,
-        worker_verbose: bool = False,
     ) -> None:
         self.config_path = config_path.resolve()
         self.repo_root = self._resolve_repo_root(self.config_path)
         self.worker_script = self.repo_root / "dumb_waiter.py"
         self.requested_python_path = python_path
         self.debug = debug
-        self.worker_debug = worker_debug
-        self.worker_verbose = worker_verbose
         self.log_path = self.repo_root / "dumb_waiter_tray" / "worker.log"
         self.tray_log_path = self.repo_root / "dumb_waiter_tray" / "tray.log"
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -99,8 +95,7 @@ class DumbWaiterTrayApp:
         self._refresh_icon_and_title()
         self._log(
             f"initialized repo_root={self.repo_root} config={self.config_path} "
-            f"requested_python={self.requested_python_path} worker_debug={self.worker_debug} "
-            f"worker_verbose={self.worker_verbose}"
+            f"requested_python={self.requested_python_path}"
         )
 
     def _resolve_repo_root(self, config_path: Path) -> Path:
@@ -204,10 +199,6 @@ class DumbWaiterTrayApp:
             env.setdefault(
                 "PYTHONUNBUFFERED", "1"
             )  # Force unbuffered I/O so logs appear immediately
-            if self.worker_debug:
-                env["DUMB_WAITER_DEBUG_MODE"] = "1"
-            if self.worker_verbose:
-                env["DUMB_WAITER_VERBOSE"] = "1"
             creation_flags = (
                 subprocess.CREATE_NO_WINDOW
                 if hasattr(subprocess, "CREATE_NO_WINDOW")
@@ -216,9 +207,7 @@ class DumbWaiterTrayApp:
             self._log(
                 f"starting worker python={python_executable} cmd={cmd} "
                 f"PYTHONUTF8={env.get('PYTHONUTF8')} "
-                f"PYTHONIOENCODING={env.get('PYTHONIOENCODING')} "
-                f"DUMB_WAITER_DEBUG_MODE={env.get('DUMB_WAITER_DEBUG_MODE')} "
-                f"DUMB_WAITER_VERBOSE={env.get('DUMB_WAITER_VERBOSE')}"
+                f"PYTHONIOENCODING={env.get('PYTHONIOENCODING')}"
             )
 
             self._worker_process = subprocess.Popen(
@@ -385,16 +374,6 @@ def main() -> None:
         action="store_true",
         help="Enable tray diagnostics in dumb_waiter_tray/tray.log.",
     )
-    parser.add_argument(
-        "--worker-debug",
-        action="store_true",
-        help="Force worker debug mode via DUMB_WAITER_DEBUG_MODE=1.",
-    )
-    parser.add_argument(
-        "--worker-verbose",
-        action="store_true",
-        help="Force worker verbose mode via DUMB_WAITER_VERBOSE=1.",
-    )
     args = parser.parse_args()
 
     python_path = Path(args.python_path) if args.python_path else None
@@ -403,8 +382,6 @@ def main() -> None:
             Path(args.config),
             python_path=python_path,
             debug=args.debug,
-            worker_debug=args.worker_debug,
-            worker_verbose=args.worker_verbose,
         )
         app.run()
     except Exception as exc:

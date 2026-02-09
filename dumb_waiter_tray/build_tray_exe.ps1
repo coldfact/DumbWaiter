@@ -10,8 +10,6 @@ Param(
   [switch]$InstallStartupTask,
   [bool]$StartAfterInstall = $true,
   [switch]$TaskDebug,
-  [switch]$TaskWorkerDebug,
-  [switch]$TaskWorkerVerbose,
   [string]$TaskName = "DumbWaiterTray"
 )
 
@@ -297,12 +295,6 @@ if ($InstallStartupTask) {
   }
   if ($TaskDebug) {
     $InstallArgs["Debug"] = $true
-  }
-  if ($TaskWorkerDebug) {
-    $InstallArgs["WorkerDebug"] = $true
-  }
-  if ($TaskWorkerVerbose) {
-    $InstallArgs["WorkerVerbose"] = $true
   }
   if ($StartAfterInstall) {
     $InstallArgs["StartNow"] = $true
