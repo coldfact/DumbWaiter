@@ -37,21 +37,20 @@ For no terminal window:
 pythonw .\dumb_waiter_tray\tray_app.py --config .\config.yaml
 ```
 
-Run with diagnostics:
+Run with tray-level diagnostics:
 
 ```powershell
-python .\dumb_waiter_tray\tray_app.py --config .\config.yaml --debug --worker-debug --worker-verbose
+python .\dumb_waiter_tray\tray_app.py --config .\config.yaml --debug
 ```
+
+> `--debug` enables lifecycle logging to `tray.log` (lightweight).
+> Worker logging (`worker.log`) is controlled by `verbose` and `debug_mode` in `config.yaml`.
 
 Logs:
 
-- `dumb_waiter_tray/tray.log` (tray app lifecycle, worker launch/exit details)
-- `dumb_waiter_tray/worker.log` (`dumb_waiter.py` output and UIA debug lines)
-- `dumb_waiter_tray/dist/startup_error.log` (fatal tray startup exceptions; appears next to the built `dumb_waiter_tray.exe` in `dist/`)
-
-Tray mode forces UTF-8 worker I/O (`PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`) so
-non-ASCII UI labels (for example `RunAlt+⏎`) do not break worker logging.
-If you are using an older built `dumb_waiter_tray.exe`, rebuild so this behavior is included.
+- `dumb_waiter_tray/tray.log` — tray app lifecycle, worker launch/exit details (controlled by `--debug`)
+- `dumb_waiter_tray/worker.log` — `dumb_waiter.py` output (controlled by `verbose` / `debug_mode` in `config.yaml`)
+- `dumb_waiter_tray/dist/startup_error.log` — fatal tray startup exceptions (appears next to `dumb_waiter_tray.exe` in `dist/`)
 
 If the EXE exits immediately with no tray icon:
 
@@ -94,10 +93,10 @@ Install and start immediately:
 powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\install_startup_task.ps1 -StartNow
 ```
 
-Install/start with debug flags:
+Install/start with debug flag:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\install_startup_task.ps1 -StartNow -Debug -WorkerDebug -WorkerVerbose
+powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\install_startup_task.ps1 -StartNow -Debug
 ```
 
 ⚠️ Warning: if this fails with `Access is denied`, open PowerShell as Administrator and run the command again.
@@ -155,10 +154,10 @@ Disable immediate start if needed:
 powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\build_tray_exe.ps1 -InstallStartupTask -StartAfterInstall:$false
 ```
 
-Build + install + start with debug flags:
+Build + install + start with debug flag:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\build_tray_exe.ps1 -InstallStartupTask -TaskDebug -TaskWorkerDebug -TaskWorkerVerbose
+powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\build_tray_exe.ps1 -InstallStartupTask -TaskDebug
 ```
 
 ⚠️ Warning: startup task registration may require an elevated (Administrator) PowerShell session.

@@ -64,9 +64,12 @@ Most users only need to edit a few fields:
 - `scope.enabled` + `scope.preset`: optional area filter to avoid false positives.
     - Common preset values: `right_half`, `bottom_right_quarter`, `full_screen`.
 - `scope.inset_percent`: shrinks scope inward to avoid edge clicks.
-- `debug_mode`: set `true` to print candidate UI labels and regex checks.
-- `verbose`: set `true` for periodic idle/diagnostic logs.
+- `debug_mode`: set `true` to log candidate UI labels and regex checks to `worker.log`. **Very verbose** — produces many lines per poll cycle.
+- `verbose`: set `true` for periodic idle/diagnostic logs and click confirmations in `worker.log`.
 - `ignore_keyboard_interrupt` / `continue_on_error`: keep watcher alive in noisy environments.
+
+> **Note:** `verbose` and `debug_mode` in `config.yaml` are the single source of truth for worker logging.
+> Set both to `false` for minimal output (startup banner and errors only).
 
 Common example (watch VS Code windows with faster polling):
 
@@ -128,21 +131,20 @@ Or no console window:
 pythonw .\dumb_waiter_tray\tray_app.py --config .\config.yaml
 ```
 
-Run tray with diagnostics (recommended when tray behavior differs from direct script):
+Run tray with tray-level diagnostics:
 
 ```powershell
-python .\dumb_waiter_tray\tray_app.py --config .\config.yaml --debug --worker-debug --worker-verbose
+python .\dumb_waiter_tray\tray_app.py --config .\config.yaml --debug
 ```
+
+> `--debug` enables lifecycle logging to `tray.log` (lightweight).
+> Worker logging (`worker.log`) is controlled by `verbose` and `debug_mode` in `config.yaml`.
 
 Debug logs:
 
-- `dumb_waiter_tray/tray.log` (tray lifecycle, launch command, worker exits)
-- `dumb_waiter_tray/worker.log` (`dumb_waiter.py` output, including UIA debug candidates)
-- `dumb_waiter_tray/dist/startup_error.log` (fatal tray EXE startup exceptions)
-
-Tray worker launch now forces UTF-8 I/O (`PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`)
-to avoid Unicode logging failures on labels like `RunAlt+⏎`.
-If you run a previously built tray EXE, rebuild it after pulling tray code changes.
+- `dumb_waiter_tray/tray.log` — tray lifecycle, launch command, worker exits (controlled by `--debug`)
+- `dumb_waiter_tray/worker.log` — `dumb_waiter.py` output (controlled by `verbose` / `debug_mode` in `config.yaml`)
+- `dumb_waiter_tray/dist/startup_error.log` — fatal tray EXE startup exceptions
 
 Use this when:
 
@@ -162,10 +164,10 @@ Install and start immediately (optional):
 powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\install_startup_task.ps1 -StartNow
 ```
 
-Install startup task with debug flags enabled:
+Install startup task with debug flag enabled:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\install_startup_task.ps1 -StartNow -Debug -WorkerDebug -WorkerVerbose
+powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\scripts\install_startup_task.ps1 -StartNow -Debug
 ```
 
 ⚠️ Warning: if task registration fails with `Access is denied`, run PowerShell as Administrator and retry.
@@ -215,10 +217,10 @@ Disable immediate start if needed:
 powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\build_tray_exe.ps1 -InstallStartupTask -StartAfterInstall:$false
 ```
 
-Build + install + start with task debug flags:
+Build + install + start with task debug flag:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\build_tray_exe.ps1 -InstallStartupTask -TaskDebug -TaskWorkerDebug -TaskWorkerVerbose
+powershell -ExecutionPolicy Bypass -File .\dumb_waiter_tray\build_tray_exe.ps1 -InstallStartupTask -TaskDebug
 ```
 
 ⚠️ Warning: the `-InstallStartupTask` step may require an elevated (Administrator) PowerShell session on some machines.
