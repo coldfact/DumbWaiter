@@ -86,6 +86,7 @@ class DumbWaiterTrayApp:
             pystray.MenuItem(
                 "Turn off", self.turn_off, enabled=lambda _item: self.is_running()
             ),
+            pystray.MenuItem("Reload config", self.reload_config),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Quit", self.quit_app),
         )
@@ -308,6 +309,19 @@ class DumbWaiterTrayApp:
     def turn_off(self, _icon=None, _item=None) -> None:
         self._log("turn_off clicked")
         self._stop_worker()
+
+    def reload_config(self, _icon=None, _item=None) -> None:
+        """Stop the worker and restart it so it re-reads config.yaml."""
+        self._log("reload_config clicked")
+        self._stop_worker()
+        try:
+            self._start_worker()
+            self._log("reload_config: worker restarted successfully")
+        except Exception as exc:
+            self._last_exit_code = -1
+            self.icon.title = f"Dumb Waiter | ERROR | {exc}"
+            self._log(f"reload_config failed: {exc!r}")
+        self._refresh_icon_and_title()
 
     def quit_app(self, _icon=None, _item=None) -> None:
         self._log("quit clicked")

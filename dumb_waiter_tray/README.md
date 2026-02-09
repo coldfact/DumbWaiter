@@ -14,6 +14,7 @@ This folder adds a Windows tray controller for `dumb_waiter.py`.
 
 - `Turn on` (start clicker)
 - `Turn off` (stop clicker)
+- `Reload config` – re-reads `config.yaml` without quitting the tray app. If the worker is running it is stopped and restarted; if idle it starts with the fresh config. Use this after editing targets, regions, or any other YAML setting.
 - icon status:
     - Green = idle/waiting
     - Red = active
