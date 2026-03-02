@@ -71,6 +71,15 @@ class DumbWaiterTrayApp:
         self._worker_process: Optional[subprocess.Popen] = None
         self._worker_log_handle = None
         self._last_exit_code: Optional[int] = None
+        self._interval_override: Optional[float] = None  # None = use config default
+
+        # Interval choices: (label, seconds_or_None)
+        self._interval_choices = [
+            ("Default", None),
+            ("30s", 30.0),
+            ("1m", 60.0),
+            ("5m", 300.0),
+        ]
 
         self.icon = pystray.Icon(
             "DumbWaiterTray", make_status_icon(False), "Dumb Waiter | IDLE"
@@ -83,6 +92,11 @@ class DumbWaiterTrayApp:
                 "Turn off", self.turn_off, enabled=lambda _item: self.is_running()
             ),
             pystray.MenuItem("Reload config", self.reload_config),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(
+                "Interval",
+                pystray.Menu(*self._build_interval_items()),
+            ),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Quit", self.quit_app),
         )
@@ -103,6 +117,54 @@ class DumbWaiterTrayApp:
         if (config_root / "dumb_waiter.py").exists():
             return config_root
         return Path(__file__).resolve().parents[1]
+
+    def _build_interval_items(self):
+        """Build radio-style menu items for interval choices."""
+        items = []
+        for label, seconds in self._interval_choices:
+            # Capture seconds in closure
+            def make_callback(secs):
+                def callback(_icon=None, _item=None):
+                    self._set_interval_override(secs)
+
+                return callback
+
+            def make_checked(secs):
+                def checked(_item):
+                    return self._interval_override == secs
+
+                return checked
+
+            items.append(
+                pystray.MenuItem(
+                    label,
+                    make_callback(seconds),
+                    checked=make_checked(seconds),
+                    radio=True,
+                )
+            )
+        return items
+
+    def _set_interval_override(self, seconds: Optional[float]) -> None:
+        """Set the interval override and restart the worker if running."""
+        if self._interval_override == seconds:
+            return
+        old = self._interval_override
+        self._interval_override = seconds
+        label = f"{seconds}s" if seconds is not None else "Default"
+        self._log(f"interval override changed: {old} -> {seconds} ({label})")
+        self._refresh_icon_and_title()
+        # Restart worker to apply the new interval
+        if self.is_running():
+            self._log("restarting worker for interval change")
+            self._stop_worker()
+            try:
+                self._start_worker()
+            except Exception as exc:
+                self._last_exit_code = -1
+                self.icon.title = f"Dumb Waiter | ERROR | {exc}"
+                self._log(f"interval restart failed: {exc!r}")
+            self._refresh_icon_and_title()
 
     def _resolve_python_executable(self, requested_python: Optional[Path]) -> str:
         if requested_python is not None:
@@ -190,6 +252,8 @@ class DumbWaiterTrayApp:
                 "--config",
                 str(self.config_path),
             ]
+            if self._interval_override is not None:
+                cmd.extend(["--interval-override", str(self._interval_override)])
             env = os.environ.copy()
             # Keep worker stdout/stderr UTF-8 when launched via pythonw/tray.
             # Without this, UI labels like "RunAlt+⏎" can raise UnicodeEncodeError

@@ -15,6 +15,7 @@ This folder adds a Windows tray controller for `dumb_waiter.py`.
 - `Turn on` (start clicker)
 - `Turn off` (stop clicker)
 - `Reload config` – re-reads `config.yaml` without quitting the tray app. If the worker is running it is stopped and restarted; if idle it starts with the fresh config. Use this after editing targets, regions, or any other YAML setting.
+- `Interval` submenu – override the polling interval at runtime without editing `config.yaml` (see [Interval override](#interval-override) below).
 - icon status:
     - Green = idle/waiting
     - Red = active
@@ -58,6 +59,24 @@ If the EXE exits immediately with no tray icon:
 Get-Content .\dumb_waiter_tray\dist\startup_error.log -Tail 200
 ```
 
+## Interval override
+
+The **Interval** submenu lets you override the polling frequency from the tray without editing `config.yaml`:
+
+| Menu item   | Behaviour                                                    |
+| ----------- | ------------------------------------------------------------ |
+| **Default** | Uses `interval_seconds` from `config.yaml` (currently `3.0`) |
+| **30s**     | Polls every 30 seconds                                       |
+| **1m**      | Polls every 60 seconds                                       |
+| **5m**      | Polls every 5 minutes                                        |
+
+How it works:
+
+- The selected option is indicated with a radio bullet (●).
+- If the worker is running when you change the interval, it **restarts automatically** with the new value.
+- The override is **session-only** — it resets to Default when the tray app is restarted. `config.yaml` is never modified.
+- Under the hood, the tray passes `--interval-override <seconds>` to `dumb_waiter.py`, which takes precedence over the YAML `interval_seconds`.
+
 ## Config notes (`config.yaml`)
 
 Tray mode uses the same `config.yaml` as direct/script mode.
@@ -66,7 +85,7 @@ Most common changes:
 
 - `uia.window_title_regex`: change from `"Antigravity"` to your app/window title regex.
     - Example: `"VS Code|Visual Studio Code"`
-- `interval_seconds`: polling frequency (`1.0` is faster than `2.0`).
+- `interval_seconds`: polling frequency (`1.0` is faster than `2.0`). Can be overridden at runtime via the tray's **Interval** submenu.
 - `scope.preset`: reduce false positives (`right_half` or `bottom_right_quarter`).
 - `debug_mode`: set `true` temporarily if a button is not being detected.
 

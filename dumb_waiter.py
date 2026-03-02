@@ -451,6 +451,7 @@ def uia_click_targets(
     """
     Try to find and invoke UIA Button controls whose name contains any target text.
     Search is strictly scoped to windows already matched by title regex.
+    Clicks ALL matching targets per cycle before returning.
     """
     targets_n = [normalize_text(t) for t in targets if t.strip()]
     if not targets_n:
@@ -464,11 +465,18 @@ def uia_click_targets(
     # Common UIA control types seen across desktop/webview/Electron button-like widgets.
     preferred_control_types = ["Button", "Hyperlink", "MenuItem", "SplitButton"]
 
-    # Global priority order: process first target across all windows before second target.
+    clicked_any = False
+
+    # Process each target across all windows; once a target is clicked, move to the next.
     for target_index, target in enumerate(targets_n):
         target_pattern = target_patterns[target_index]
+        target_clicked = False
         for window, window_region in windows_with_regions:
+            if target_clicked:
+                break
             for control_type in preferred_control_types:
+                if target_clicked:
+                    break
                 try:
                     controls = window.descendants(control_type=control_type)
                 except Exception:
@@ -537,9 +545,14 @@ def uia_click_targets(
                                 click_x = (clipped_rect[0] + clipped_rect[2]) // 2
                                 click_y = (clipped_rect[1] + clipped_rect[3]) // 2
                                 pyautogui.click(click_x, click_y)
-                        return True
+                        clicked_any = True
+                        target_clicked = True
+                        break  # done with this target, move to next
                     except Exception:
                         continue
+
+            if target_clicked:
+                continue
 
             # Final fallback: search any named element with exact target text and click its center.
             # This catches Electron/webview controls that don't expose standard button control types.
@@ -606,11 +619,13 @@ def uia_click_targets(
                             f"at ({click_x},{click_y}) (window='{title}')"
                         )
                     pyautogui.click(click_x, click_y)
-                    return True
+                    clicked_any = True
+                    target_clicked = True
+                    break  # done with this target, move to next
                 except Exception:
                     continue
 
-    return False
+    return clicked_any
 
 
 def main() -> None:
@@ -625,6 +640,12 @@ def main() -> None:
         default=str(default_cfg),
         help=f"Path to config.yaml (default: {default_cfg})",
     )
+    ap.add_argument(
+        "--interval-override",
+        type=float,
+        default=None,
+        help="Override interval_seconds from config (seconds).",
+    )
     args = ap.parse_args()
 
     cfg_path = Path(args.config).resolve()
@@ -634,6 +655,8 @@ def main() -> None:
 
     targets = cfg.get("targets", ["accept all", "run"])
     interval_s = float(cfg.get("interval_seconds", 2.0))
+    if args.interval_override is not None:
+        interval_s = args.interval_override
     verbose = bool(cfg.get("verbose", True))
     debug_mode = bool(cfg.get("debug_mode", False))
     ignore_keyboard_interrupt = bool(cfg.get("ignore_keyboard_interrupt", True))

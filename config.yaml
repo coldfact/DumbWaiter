@@ -3,8 +3,9 @@ targets:
   - "allow this conversation"
   - "run"
   - "retry"
+  - "allow once"
 
-interval_seconds: 2.0
+interval_seconds: 3.0
 verbose: false
 debug_mode: false
 # Keep watcher alive if terminal sends Ctrl+C (common when Run is executed in same VS Code terminal).
@@ -24,6 +25,7 @@ uia:
     - "^allow this conversation(?:\\s*alt.*)?$"
     - "^run(?:\\s*alt.*)?$"
     - "^retry(?:\\s*alt.*)?$"
+    - "^Allow Once(?:\\s*alt.*)?$"
 
 # Optional screen scope (no pixel math needed).
 # Useful to avoid left-side menu/toolbars that contain "Run" labels.
