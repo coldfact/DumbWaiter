@@ -20,6 +20,11 @@ uia:
   # Optional per-target regex matching, aligned by order with `targets`.
   # Use this when a button label includes shortcut hints like "Run Alt+↲".
   # Set empty string to keep strict exact matching for that target.
+  # Scroll the scoped region down N mouse-wheel ticks before scanning (0 = disabled).
+  scroll_down: 10
+  # Where to position the mouse for scrolling (relative to the matched window).
+  # Options: right_N, left_N, center (N = percentage from that edge).
+  scroll_region: "right_1"
   target_regexes:
     - "^accept\\s+all$"
     - "^allow this conversation(?:\\s*alt.*)?$"

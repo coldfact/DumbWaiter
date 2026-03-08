@@ -64,6 +64,14 @@ Most users only need to edit a few fields:
 - `scope.enabled` + `scope.preset`: optional area filter to avoid false positives.
     - Common preset values: `right_half`, `bottom_right_quarter`, `full_screen`.
 - `scope.inset_percent`: shrinks scope inward to avoid edge clicks.
+- `uia.scroll_down`: scroll the target window down before scanning for buttons (default `0` = disabled).
+    - **Why:** In long conversations, target buttons (e.g., `Run`, `Accept all`) can end up below the visible scroll area. When this happens, the UI automation tree may not include them and the Dumb Waiter cannot find or click them. Enabling `scroll_down` ensures the window is scrolled to reveal hidden targets before each scan cycle.
+    - Set to the number of mouse-wheel ticks to scroll down (e.g., `10`).
+    - Uses Win32 `mouse_event(MOUSEEVENTF_WHEEL)` for reliable cross-monitor scrolling.
+- `uia.scroll_region`: where to position the mouse for scrolling, relative to the matched window (default `right_10`).
+    - Format: `right_N`, `left_N`, or `center` — where `N` is a percentage from that edge.
+    - Example: `right_1` places the cursor in the rightmost 1% of the Antigravity window (over the chat panel scroll area).
+    - The position is calculated per window, so it works correctly across multiple monitors regardless of which screen the window is on.
 - `debug_mode`: set `true` to log candidate UI labels and regex checks to `worker.log`. **Very verbose** — produces many lines per poll cycle.
 - `verbose`: set `true` for periodic idle/diagnostic logs and click confirmations in `worker.log`.
 - `ignore_keyboard_interrupt` / `continue_on_error`: keep watcher alive in noisy environments.

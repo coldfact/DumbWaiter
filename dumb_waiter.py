@@ -441,6 +441,76 @@ def apply_scope_to_windows(
     return scoped
 
 
+# ---------------------------------------------------------------------------
+# Win32 mouse-wheel scroll
+# ---------------------------------------------------------------------------
+_MOUSEEVENTF_WHEEL = 0x0800
+_WHEEL_DELTA_DOWN = -120  # one notch down
+
+
+def _parse_scroll_region(region_str: str, window_rect: Region) -> Tuple[int, int]:
+    """
+    Parse a scroll_region string (e.g. 'right_10') and return (cx, cy)
+    relative to the given window bounds.
+    """
+    region = region_str.strip().lower()
+    if region == "center":
+        return (
+            window_rect.left + window_rect.width // 2,
+            window_rect.top + window_rect.height // 2,
+        )
+    if region.startswith("right_"):
+        pct = int(region.split("_")[1])
+        pct = max(1, min(100, pct))
+        band_width = int(window_rect.width * pct / 100)
+        cx = window_rect.right - band_width // 2
+        cy = window_rect.top + window_rect.height // 2
+        return cx, cy
+    if region.startswith("left_"):
+        pct = int(region.split("_")[1])
+        pct = max(1, min(100, pct))
+        band_width = int(window_rect.width * pct / 100)
+        cx = window_rect.left + band_width // 2
+        cy = window_rect.top + window_rect.height // 2
+        return cx, cy
+    # Fallback: center of window
+    return (
+        window_rect.left + window_rect.width // 2,
+        window_rect.top + window_rect.height // 2,
+    )
+
+
+def _scroll_window_down(
+    window: Any,
+    window_rect: Region,
+    ticks: int,
+    scroll_region: str = "right_10",
+    verbose: bool = False,
+) -> None:
+    """
+    Move cursor to the center of *scroll_region* within the window
+    and fire Win32 MOUSEEVENTF_WHEEL events to scroll down.
+    Works on any monitor because window_rect uses virtual-desktop coords.
+    """
+    if ticks <= 0:
+        return
+    try:
+        window.set_focus()
+        time.sleep(0.15)
+    except Exception:
+        pass
+    cx, cy = _parse_scroll_region(scroll_region, window_rect)
+    # SetCursorPos works in virtual-desktop coords across all monitors.
+    # pyautogui.moveTo normalizes to primary monitor only — do NOT use it here.
+    ctypes.windll.user32.SetCursorPos(cx, cy)
+    for _ in range(ticks):
+        ctypes.windll.user32.mouse_event(_MOUSEEVENTF_WHEEL, 0, 0, _WHEEL_DELTA_DOWN, 0)
+        time.sleep(0.08)
+    if verbose:
+        print(f"[SCROLL] {ticks} ticks down at ({cx},{cy}) region={scroll_region}")
+    time.sleep(0.15)
+
+
 def uia_click_targets(
     windows_with_regions: List[Tuple[Any, Region]],
     targets: List[str],
@@ -679,6 +749,8 @@ def main() -> None:
             "Config 'uia.window_title_regex' is required and must be non-empty."
         )
     target_regexes = cfg.get("uia", {}).get("target_regexes", [])
+    scroll_down_ticks = int(cfg.get("uia", {}).get("scroll_down", 0))
+    scroll_region = str(cfg.get("uia", {}).get("scroll_region", "right_10")).strip()
     if target_regexes is not None and not isinstance(target_regexes, list):
         raise SystemExit("Config 'uia.target_regexes' must be a list when provided.")
     scope_cfg = cfg.get("scope", {})
@@ -766,6 +838,18 @@ def main() -> None:
                 print(
                     "[SCOPE] Matching windows exist, but none intersect the configured scope."
                 )
+
+            # Pre-scroll: use RAW window bounds (before scoping) so
+            # scroll_region is relative to the full window, not the scope.
+            if scroll_down_ticks > 0 and windows_with_regions:
+                for window, window_rect in windows_with_regions:
+                    _scroll_window_down(
+                        window,
+                        window_rect,
+                        scroll_down_ticks,
+                        scroll_region=scroll_region,
+                        verbose=verbose,
+                    )
 
             if uia_enabled and scoped_windows:
                 clicked = uia_click_targets(
